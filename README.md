@@ -1,3 +1,21 @@
+# Alpaca LLM Fine Tuning - trainML Instructions
+
+This repository is a fork of the [Stanford Alpaca](https://github.com/Stability-AI/stablediffusion) repository that contains instructions on how to run the fine tuning process and use the results for inference on the [trainML platform](https://www.trainml.ai/).
+
+> This tutorial is for research and training purposes. You must agree to and follow all license terms of the source code, datasets, and model code. In particular, using the results of this tutorial for commercial purposes is prohibited.
+
+### Prerequisites
+
+Before beginning this example, ensure that you have satisfied the following prerequisites.
+
+- A valid [trainML account](https://auth.trainml.ai/login?response_type=code&client_id=536hafr05s8qj3ihgf707on4aq&redirect_uri=https://app.trainml.ai/auth/callback) with a non-zero [credit balance](https://docs.trainml.ai/reference/billing-credits/).
+- The [trainML CLI/SDK](https://github.com/trainML/trainml-cli) installed and [configured](https://github.com/trainML/trainml-cli#authentication).
+
+## Instruction Fine-Tuning
+
+## Deploying an Inference Endpoint
+
+## Original Repo README.md
 
 <p align="center" width="100%">
 <a href="https://crfm.stanford.edu/alpaca/" target="_blank"><img src="assets/logo.png" alt="Stanford-Alpaca" style="width: 50%; min-width: 300px; display: block; margin: auto;"></a>
@@ -20,7 +38,7 @@ This is the repo for the Stanford Alpaca project, which aims to build and share 
 
 Note: We thank the community for feedback on Stanford-Alpaca and supporting our research. Our live demo is suspended until further notice.
 
-**Usage and License Notices**: Alpaca is intended and licensed for research use only. The dataset is CC BY NC 4.0 (allowing only non-commercial use) and models trained using the dataset should not be used outside of research purposes. 
+**Usage and License Notices**: Alpaca is intended and licensed for research use only. The dataset is CC BY NC 4.0 (allowing only non-commercial use) and models trained using the dataset should not be used outside of research purposes.
 The weight diff is also CC BY NC 4.0 (allowing only non-commercial use).
 
 ## Overview
@@ -53,30 +71,30 @@ We used the following prompts for fine-tuning the Alpaca model:
 
 - for examples with a non-empty input field:
 
- ```
- Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
- 
- ### Instruction:
- {instruction}
- 
- ### Input:
- {input}
- 
- ### Response:
- ```
+```
+Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+
+### Instruction:
+{instruction}
+
+### Input:
+{input}
+
+### Response:
+```
 
 - for examples with an empty input field:
 
- ```
- Below is an instruction that describes a task. Write a response that appropriately completes the request.
- 
- ### Instruction:
- {instruction}
- 
- ### Response:
- ```
+```
+Below is an instruction that describes a task. Write a response that appropriately completes the request.
 
- During inference (eg for the web demo), we use the user instruction with an empty input field (second option).
+### Instruction:
+{instruction}
+
+### Response:
+```
+
+During inference (eg for the web demo), we use the user instruction with an empty input field (second option).
 
 ## Data Generation Process
 
@@ -102,7 +120,8 @@ In a preliminary study, we also find our 52K generated data to be much more dive
 We plot the below figure (in the style of Figure 2 in the [self-instruct paper](https://arxiv.org/abs/2212.10560) to demonstrate the diversity of our data.
 The inner circle of the plot represents the root verb of the instructions, and the outer circle represents the direct objects.
 
-[//]: # (![parse_analysis]&#40;assert/parse_analysis.png | width=100&#41;)
+[//]: # '![parse_analysis](assert/parse_analysis.png | width=100)'
+
 [<img src="assets/parse_analysis.png" width="750" />](./assets/parse_analysis.png)
 
 ## Fine-tuning
@@ -111,7 +130,7 @@ We fine-tune our models using standard Hugging Face training code.
 We fine-tune LLaMA-7B and LLaMA-13B with the following hyperparameters:
 
 | Hyperparameter | LLaMA-7B | LLaMA-13B |
-|----------------|----------|-----------|
+| -------------- | -------- | --------- |
 | Batch size     | 128      | 128       |
 | Learning rate  | 2e-5     | 1e-5      |
 | Epochs         | 3        | 5         |
@@ -189,34 +208,35 @@ If you'd like to further reduce the memory footprint, here are some options:
 
 - Turn on CPU offload for FSDP with `--fsdp "full_shard auto_wrap offload"`. This saves VRAM at the cost of longer runtime.
 - In our experience, DeepSpeed stage-3 (with offload) can at times be more memory efficient than FSDP with offload. Here's an example to use DeepSpeed stage-3 with 4 GPUs with both parameter and optimizer offload:
-    ```bash
-    pip install deepspeed
-    torchrun --nproc_per_node=4 --master_port=<your_random_port> train.py \
-        --model_name_or_path <your_path_to_hf_converted_llama_ckpt_and_tokenizer> \
-        --data_path ./alpaca_data.json \
-        --bf16 True \
-        --output_dir <your_output_dir> \
-        --num_train_epochs 3 \
-        --per_device_train_batch_size 4 \
-        --per_device_eval_batch_size 4 \
-        --gradient_accumulation_steps 8 \
-        --evaluation_strategy "no" \
-        --save_strategy "steps" \
-        --save_steps 2000 \
-        --save_total_limit 1 \
-        --learning_rate 2e-5 \
-        --weight_decay 0. \
-        --warmup_ratio 0.03 \
-        --deepspeed "./configs/default_offload_opt_param.json" \
-        --tf32 True
-    ```
-  - The DeepSpeed library also provides some [helpful functions](https://deepspeed.readthedocs.io/en/latest/memory.html) to estimate memory usage. 
+  ```bash
+  pip install deepspeed
+  torchrun --nproc_per_node=4 --master_port=<your_random_port> train.py \
+      --model_name_or_path <your_path_to_hf_converted_llama_ckpt_and_tokenizer> \
+      --data_path ./alpaca_data.json \
+      --bf16 True \
+      --output_dir <your_output_dir> \
+      --num_train_epochs 3 \
+      --per_device_train_batch_size 4 \
+      --per_device_eval_batch_size 4 \
+      --gradient_accumulation_steps 8 \
+      --evaluation_strategy "no" \
+      --save_strategy "steps" \
+      --save_steps 2000 \
+      --save_total_limit 1 \
+      --learning_rate 2e-5 \
+      --weight_decay 0. \
+      --warmup_ratio 0.03 \
+      --deepspeed "./configs/default_offload_opt_param.json" \
+      --tf32 True
+  ```
+  - The DeepSpeed library also provides some [helpful functions](https://deepspeed.readthedocs.io/en/latest/memory.html) to estimate memory usage.
 - [LoRA](https://arxiv.org/abs/2106.09685) fine-tunes low-rank slices of the query, key, and value embedding heads. This can reduce the total memory footprint from 112GB to about 7x4=28GB. We may release our re-implemention of this in the future, but for now the [peft](https://github.com/huggingface/peft) codebase can be a useful resource.
 
 ## Recovering Alpaca Weights
 
 The weight diff between Alpaca-7B and LLaMA-7B is located [here](https://huggingface.co/tatsu-lab/alpaca-7b-wdiff/tree/main).
 To recover the original Alpaca-7B weights, follow these steps:
+
 ```text
 1. Convert Meta's released weights into huggingface format. Follow this guide:
     https://huggingface.co/docs/transformers/main/model_doc/llama
