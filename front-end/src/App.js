@@ -27,7 +27,6 @@ function App() {
     setTemperature(values.temperature);
     setTopP(values.top_p);
     setNumBeams(values.num_beams);
-    setInstruction('');
     setResponse('');
   };
 
